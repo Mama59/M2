@@ -1,70 +1,49 @@
-import java.util.HashMap;
-
+import java.util.ArrayList;
 
 public aspect AClientOrder {
-	HashMap<Client, Order> clientsOrders = new HashMap<Client, Order>();
-	pointcut addOrder() : call(* Client.addOrder(..));
-	pointcut delClient() : call(* Clients.delClient(..));
-	
-	after(): addOrder() {
-		
-		
+	public Client Order.client;
+	public void Order.setClient(Client client) {
+		this.client = client;
 	}
+
+	public ArrayList<Order> Client.orders = new ArrayList<Order>();
+
+	pointcut setClient() : call(void Order.setClient(Client));
+
+	before(): setClient() {
+		Client client = (Client) thisJoinPoint.getArgs()[0];
+		client.orders.add((Order) thisJoinPoint.getTarget());
+	}
+	public String Client.toString() {
+		String result =  "Client [name=" + name + ", address=" + address;
+		if(this.orders.size() > 0) {
+			System.out.println(orders);
+
+			for(Order order: this.orders) {
+				if(order.client != null && order.client.equals(this)) {
+					result += "\n" + order.toString();
+				}
+			}
+		}
+		return result + "]";
+
+	}
+
+	pointcut delClient() : call(void Clients.delClient(Client));
+
+	void around(): delClient() {
+		Client client = (Client) thisJoinPoint.getArgs()[0];
+		if(! client.hasOrder()) {
+			proceed();
+		}
+	}
+
+	public boolean Client.hasOrder() {
+		for(int i = 0; i < orders.size(); i++) {
+			if(orders.get(i).client.equals(this)) {
+				return true;
+			}
+		}
+		return false;
+	}	
 }
-/*
- 
- 
-public aspect ATrace {
-	pointcut traceMethode() : call(void B.print(String));
-
-	void around(): traceMethode() {
-		System.out.println("Around");
-		System.out.println(thisJoinPoint.getThis());
-		System.out.println(thisJoinPoint.getTarget());
-		System.out.println(thisJoinPoint.getSignature());
-		Object[] args = thisJoinPoint.getArgs();
-		for (int i = 0; i < args.length; i++) {
-			System.out.println("arg[" + i + "] : "+ args[i]);
-		}
-		proceed();
-		System.out.println("Around After proceed");
-
-		System.out.println(thisJoinPoint.getThis());
-		System.out.println(thisJoinPoint.getTarget());
-		System.out.println(thisJoinPoint.getSignature());
-		args = thisJoinPoint.getArgs();
-		for (int i = 0; i < args.length; i++) {
-			System.out.println("arg[" + i + "] : "+ args[i]);
-		}	
-		System.out.println();
-
-	}
-
-	before() : traceMethode() {
-		System.out.println("Before");
-
-		System.out.println(thisJoinPoint.getThis());
-		System.out.println(thisJoinPoint.getTarget());
-		System.out.println(thisJoinPoint.getSignature());
-		Object[] args = thisJoinPoint.getArgs();
-		for (int i = 0; i < args.length; i++) {
-			System.out.println("arg[" + i + "] : "+ args[i]);
-		}
-		System.out.println();		
-
-	}
-	after(): traceMethode() {
-		System.out.println("After");
-
-		System.out.println(thisJoinPoint.getThis());
-		System.out.println(thisJoinPoint.getTarget());
-		System.out.println(thisJoinPoint.getSignature());
-		Object[] args = thisJoinPoint.getArgs();
-		for (int i = 0; i < args.length; i++) {
-			System.out.println("arg[" + i + "] : "+ args[i]);
-		}
-		System.out.println();
-	}
-}
-
- */

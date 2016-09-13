@@ -17,6 +17,4 @@ public class Order {
 	public String toString() {
 		return "Order [id=" + id + ", amout=" + amout + "]";
 	}
-	
-	
 }
